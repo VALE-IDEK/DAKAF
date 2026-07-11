@@ -1,29 +1,26 @@
 const multer = require('multer');
-const path = require('path');
-const crypto = require('crypto');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, '..', '..', 'uploads'));
-  },
-  filename: (req, file, cb) => {
-    const uniqueName = crypto.randomBytes(16).toString('hex');
-    cb(null, `${uniqueName}${path.extname(file.originalname)}`);
-  },
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: 'dakaf-availables',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'gif'],
+    // Cache-friendly, unique-ish public IDs
+    public_id: (req, file) => `${Date.now()}-${file.originalname.replace(/\.[^/.]+$/, '')}`,
+  },
+});
 
 const upload = multer({
   storage,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
-  fileFilter: (req, file, cb) => {
-    if (ALLOWED_TYPES.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only JPEG, PNG, WEBP, or GIF images are allowed.'));
-    }
-  },
 });
 
 module.exports = upload;
