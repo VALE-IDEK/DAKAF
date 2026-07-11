@@ -41,7 +41,7 @@ router.post('/products', upload.single('image'), (req, res) => {
     return res.status(400).json({ error: 'Product name and price are required.' });
   }
 
-  const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
+  const imageUrl = req.file ? req.file.path : null;
 
   const info = db
     .prepare(
@@ -76,7 +76,7 @@ router.put('/products/:id', upload.single('image'), (req, res) => {
     category_id = existing.category_id,
   } = req.body;
 
-  const imageUrl = req.file ? `/uploads/${req.file.filename}` : existing.image_url;
+  const imageUrl = req.file ? req.file.path : existing.image_url;
 
   db.prepare(
     `UPDATE products SET name = ?, description = ?, price = ?, stock = ?, image_url = ?, category_id = ?
