@@ -1,4 +1,15 @@
-const API_BASE = '/api';
+// Hardcoded directly since the Vercel env var wasn't reliably making it into
+// the build. If you ever move the backend, update this one line.
+const API_ROOT = 'https://dakaf-api.onrender.com';
+const API_BASE = `${API_ROOT}/api`;
+
+// Product images come back as relative paths like "/uploads/xyz.jpg" -
+// this turns them into a full URL against the same backend.
+export function assetUrl(path) {
+  if (!path) return null;
+  if (path.startsWith('http')) return path;
+  return `${API_ROOT}${path}`;
+}
 
 async function request(path, options = {}) {
   const res = await fetch(`${API_BASE}${path}`, {
