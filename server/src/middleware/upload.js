@@ -1,6 +1,5 @@
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -8,19 +7,35 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const storage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder: 'dakaf-availables',
-    allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'gif'],
-    // Cache-friendly, unique-ish public IDs
-    public_id: (req, file) => `${Date.now()}-${file.originalname.replace(/\.[^/.]+$/, '')}`,
+// Hold the uploaded file in memory (not on Render's disk) - we push it to
+// Cloudinary ourselves right after multer parses the request.
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter: (req, file, cb) => {
+    const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (allowed.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only JPEG, PNG, WEBP, or GIF images are allowed.'));
+    }
   },
 });
 
-const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
-});
+// Uploads a buffer (from multer memoryStorage) to Cloudinary and resolves
+// with the public URL. Use after upload.single('image') has run.
+function uploadBufferToCloudinary(buffer) {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder: 'dakaf-availables' },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result.secure_url);
+      }
+    );
+    stream.end(buffer);
+  });
+}
 
 module.exports = upload;
+module.exports.uploadBufferToCloudinary = uploadBufferToCloudinary;
