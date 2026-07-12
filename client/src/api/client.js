@@ -58,6 +58,12 @@ export const api = {
       body: JSON.stringify(payload),
     }),
 
+  adminDeleteCategory: (token, id) =>
+    request(`/admin/categories/${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+
   adminCreateProduct: (token, formData) =>
     request('/admin/products', {
       method: 'POST',
