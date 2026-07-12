@@ -82,6 +82,12 @@ export default function AdminDashboard() {
     }
   }
 
+  async function handleDeleteCategory(id) {
+    if (!confirm('Delete this category? Products in it will become uncategorized.')) return;
+    await api.adminDeleteCategory(token, id);
+    refreshData();
+  }
+
   async function handleDeleteProduct(id) {
     await api.adminDeleteProduct(token, id);
     refreshData();
@@ -137,9 +143,17 @@ export default function AdminDashboard() {
           <h3 className="text-xs font-medium text-ink/50 mb-2">Existing categories</h3>
           <ul className="text-sm space-y-1">
             {categories.map((c) => (
-              <li key={c.id} className="text-ink/70">
-                {c.parent_id ? '— ' : ''}
-                {c.name}
+              <li key={c.id} className="flex items-center justify-between border-b border-brand-900/10 pb-1">
+                <span className="text-ink/70">
+                  {c.parent_id ? '— ' : ''}
+                  {c.name}
+                </span>
+                <button
+                  onClick={() => handleDeleteCategory(c.id)}
+                  className="text-xs text-red-600 hover:underline"
+                >
+                  Delete
+                </button>
               </li>
             ))}
           </ul>
