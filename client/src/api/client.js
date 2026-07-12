@@ -38,6 +38,13 @@ export const api = {
   getMe: () => request('/auth/me'),
   logout: () => request('/auth/logout', { method: 'POST' }),
 
+  createOrder: (payload) =>
+    request('/orders', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  getMyOrders: () => request('/orders/my'),
+
   adminLogin: (username, password) =>
     request('/admin/login', {
       method: 'POST',
