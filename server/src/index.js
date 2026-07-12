@@ -10,6 +10,7 @@ const adminAuthRoutes = require('./routes/adminAuth');
 const adminRoutes = require('./routes/admin');
 const productRoutes = require('./routes/products');
 const categoryRoutes = require('./routes/categories');
+const orderRoutes = require('./routes/orders');
 
 const app = express();
 
@@ -26,18 +27,25 @@ app.use(
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-    cookie: { httpOnly: true, secure: process.env.NODE_ENV === 'production', maxAge: 7 * 24 * 60 * 60 * 1000 },
+    cookie: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    },
   })
 );
 app.use(passport.initialize());
 app.use(passport.session());
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
+
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminAuthRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/categories', categoryRoutes);
+app.use('/api/orders', orderRoutes);
 
 // Central error handler (e.g. multer file-type/size errors)
 app.use((err, req, res, next) => {
